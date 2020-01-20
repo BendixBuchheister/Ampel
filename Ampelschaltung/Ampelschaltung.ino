@@ -22,15 +22,15 @@ enum {Light_Green,
       Light_AllRedCG,
       Light_RedYellow, 
       Light_None} 
-      light = Light_Red; 
+      light = Light_Yellow; 
   
 
 /* Timer for activating Sleep Mode in ms */
-const int SLEEPMODECD = 100000;
+const int SLEEPMODECD = 10000;
 /* Duration the traffic Light stays on Yellow in ms*/
-const int SWAPDURATION = 1000;
+const int SWAPDURATION = 100;
 /* Duration the traffic Light stays on green/red in ms*/
-const int STAYDURATION = 5000;
+const int STAYDURATION = 2500;
 /* Duration one needs to push the button, to count as a long push in ms*/
 const int LONGBUTTONPRESS = 300;
 /* Status to save the old Status, while the traffic light is paused in ms */
@@ -71,10 +71,12 @@ void loop() {
                              break;
       case Status_Blinking : stat = Status_Change;
                              light = Light_Red;
+                             trafficLightTimer = setTimer(0);
                              break;
       case Status_Sleeping : 
       case Status_Change   : stat = Status_Blinking;
-                             trafficLightTimer = setTimer(SWAPDURATION);
+                             light = Light_None;
+                             trafficLightTimer = setTimer(0);
                              sleepTimer = setTimer(SLEEPMODECD);
                              break;
     }
@@ -84,15 +86,18 @@ void loop() {
     switch (stat){
       case Status_Pause    : stat = temp;
                              break;
-      case Status_Blinking : stat = Status_Change;
-                             light = Light_Red;
-                             break;
       case Status_Sleeping : stat = Status_Blinking;
-                             trafficLightTimer = setTimer(SWAPDURATION);
+                             trafficLightTimer = setTimer(0);
                              sleepTimer = setTimer(SLEEPMODECD);
                              break;
       case Status_Change   : temp = stat;
                              stat = Status_Pause;
+                             break;
+      case Status_Blinking : 
+      default              : stat = Status_Change;
+                             light = Light_Red;
+                             trafficLightTimer = setTimer(0);
+                             break;
     }
     running = false;
   } 
@@ -112,6 +117,7 @@ void loop() {
     case Status_Sleeping : ampel.noLight();
                            fussgaenger.noLight();
                            light = Light_None;
+                           break;
   }
 }
 
